@@ -1,14 +1,38 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
+import { apiRequest } from '../lib/api';
+import { useAuth } from '../context/AuthContext';
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { setUser } = useAuth();
+  const [form, setForm] = useState({ email: '', password: '' });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e) => {
+  const handleChange = (e) => {
+    setForm((current) => ({ ...current, [e.target.name]: e.target.value }));
+  };
+
+  const handleLogin = async (e) => {
     e.preventDefault();
-    navigate('/dashboard');
+    setError('');
+    setLoading(true);
+    try {
+      const data = await apiRequest('/api/auth/login', {
+        method: 'POST',
+        body: form
+      });
+      setUser(data.user);
+      navigate(location.state?.from || '/dashboard', { replace: true });
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -38,11 +62,36 @@ export default function Login() {
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
-            <Input label="Email address" type="email" placeholder="you@example.com" required />
-            <Input label="Password" type="password" placeholder="••••••••" required />
+            {error && (
+              <div className="rounded-sm border border-status-danger/30 bg-status-danger/5 px-3 py-2 text-sm text-status-danger">
+                {error}
+              </div>
+            )}
+            <Input
+              label="Email address"
+              type="email"
+              name="email"
+              value={form.email}
+              onChange={handleChange}
+              placeholder="you@example.com"
+              autoComplete="email"
+              required
+            />
+            <Input
+              label="Password"
+              type="password"
+              name="password"
+              value={form.password}
+              onChange={handleChange}
+              placeholder="••••••••"
+              autoComplete="current-password"
+              required
+            />
             
             <div className="pt-2">
-              <Button className="w-full" type="submit">Sign in</Button>
+              <Button className="w-full" type="submit" disabled={loading}>
+                {loading ? 'Signing in...' : 'Sign in'}
+              </Button>
             </div>
           </form>
           

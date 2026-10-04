@@ -14,6 +14,19 @@ import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Pricing from './pages/Pricing';
+import ProtectedRoute from './components/auth/ProtectedRoute';
+
+const privateRoutes = [
+  ['/dashboard', Dashboard],
+  ['/expenses', Expenses],
+  ['/bills', Bills],
+  ['/subscriptions', Subscriptions],
+  ['/budgets', Budgets],
+  ['/analytics', Analytics],
+  ['/reports', Reports],
+  ['/family', Family],
+  ['/settings', Settings]
+];
 
 function App() {
   return (
@@ -26,15 +39,17 @@ function App() {
         <Route path="/pricing" element={<Pricing />} />
 
         {/* Authenticated Routes */}
-        <Route path="/dashboard" element={<AppLayout><Dashboard /></AppLayout>} />
-        <Route path="/expenses" element={<AppLayout><Expenses /></AppLayout>} />
-        <Route path="/bills" element={<AppLayout><Bills /></AppLayout>} />
-        <Route path="/subscriptions" element={<AppLayout><Subscriptions /></AppLayout>} />
-        <Route path="/budgets" element={<AppLayout><Budgets /></AppLayout>} />
-        <Route path="/analytics" element={<AppLayout><Analytics /></AppLayout>} />
-        <Route path="/reports" element={<AppLayout><Reports /></AppLayout>} />
-        <Route path="/family" element={<AppLayout><Family /></AppLayout>} />
-        <Route path="/settings" element={<AppLayout><Settings /></AppLayout>} />
+        {privateRoutes.map(([path, Page]) => (
+          <Route
+            key={path}
+            path={path}
+            element={(
+              <ProtectedRoute>
+                <AppLayout><Page /></AppLayout>
+              </ProtectedRoute>
+            )}
+          />
+        ))}
         
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />

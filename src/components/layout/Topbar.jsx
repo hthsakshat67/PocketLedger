@@ -1,7 +1,16 @@
 import React from 'react';
 import { Bell } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 export default function Topbar() {
+  const { user } = useAuth();
+  const initials = user?.name
+    ?.split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join('') || 'PL';
+
   return (
     <header className="h-16 border-b border-border bg-surface px-6 flex items-center justify-between sticky top-0 z-10">
       <h2 className="text-xl font-semibold text-text-main">Dashboard</h2>
@@ -19,7 +28,7 @@ export default function Topbar() {
         </button>
         
         <div className="w-8 h-8 rounded-full bg-muted-background flex items-center justify-center text-text-main font-medium text-sm sm:hidden">
-          AK
+          {initials}
         </div>
       </div>
     </header>
