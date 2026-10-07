@@ -1,19 +1,35 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Select } from '../components/ui/Select';
+import { useAuth } from '../context/AuthContext';
+import { useLedger } from '../context/LedgerContext';
 
 export default function Settings() {
+  const { user } = useAuth();
+  const { settings, updateSettings, updateNotificationSettings } = useLedger();
   const [activeTab, setActiveTab] = useState('profile');
-  
+  const [preferences, setPreferences] = useState(settings);
+
+  useEffect(() => {
+    setPreferences(settings);
+  }, [settings]);
+
   const tabs = [
     { id: 'profile', label: 'Profile' },
     { id: 'preferences', label: 'Preferences' },
     { id: 'notifications', label: 'Notifications' },
     { id: 'security', label: 'Security' },
-    { id: 'subscription', label: 'Subscription' },
+    { id: 'subscription', label: 'Subscription' }
   ];
+
+  const initials = user?.name
+    ?.split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join('') || 'PL';
 
   return (
     <div className="space-y-6 max-w-5xl">
@@ -25,24 +41,17 @@ export default function Settings() {
       <div className="flex flex-col md:flex-row gap-8">
         <aside className="w-full md:w-64 shrink-0">
           <nav className="flex flex-row md:flex-col space-x-2 md:space-x-0 md:space-y-1 overflow-x-auto pb-2 md:pb-0">
-            {tabs.map(tab => (
+            {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`px-3 py-2 text-sm font-medium rounded-sm transition-colors whitespace-nowrap text-left ${
-                  activeTab === tab.id 
-                    ? 'bg-primary/10 text-primary' 
-                    : 'text-text-muted hover:text-text-main hover:bg-muted-background'
+                  activeTab === tab.id ? 'bg-primary/10 text-primary' : 'text-text-muted hover:text-text-main hover:bg-muted-background'
                 }`}
               >
                 {tab.label}
               </button>
             ))}
-            <div className="md:pt-4 md:mt-4 md:border-t md:border-border">
-              <button className="px-3 py-2 text-sm font-medium rounded-sm transition-colors text-status-danger hover:bg-status-danger/10 text-left w-full">
-                Danger zone
-              </button>
-            </div>
           </nav>
         </aside>
 
@@ -53,17 +62,12 @@ export default function Settings() {
               <div className="space-y-4 max-w-md">
                 <div className="flex items-center gap-4 mb-6">
                   <div className="w-16 h-16 rounded-full bg-muted-background flex items-center justify-center text-text-main font-medium text-xl">
-                    AK
+                    {initials}
                   </div>
-                  <Button variant="secondary" size="sm">Change avatar</Button>
                 </div>
-                
-                <Input label="Full name" defaultValue="Akshat" />
-                <Input label="Email address" defaultValue="akshat@example.com" type="email" />
-                
-                <div className="pt-4 mt-6 border-t border-border">
-                  <Button>Save changes</Button>
-                </div>
+                <Input label="Full name" value={user?.name || ''} readOnly />
+                <Input label="Email address" value={user?.email || ''} type="email" readOnly />
+                <p className="text-xs text-text-muted">Profile identity is tied to your verified login account.</p>
               </div>
             </Card>
           )}
@@ -72,34 +76,69 @@ export default function Settings() {
             <Card className="p-6">
               <h3 className="font-medium text-text-main mb-6 pb-4 border-b border-border">Preferences</h3>
               <div className="space-y-4 max-w-md">
-                <Select label="Currency">
-                  <option>Indian Rupee (₹)</option>
-                  <option>US Dollar ($)</option>
-                  <option>Euro (€)</option>
-                  <option>British Pound (£)</option>
+                <Select label="Currency" value={preferences.currency} onChange={(event) => setPreferences({ ...preferences, currency: event.target.value })}>
+                  <option value="USD">US Dollar ($)</option>
+                  <option value="EUR">Euro (€)</option>
+                  <option value="GBP">British Pound (£)</option>
                 </Select>
-                <Select label="Timezone">
-                  <option>Asia/Kolkata (IST)</option>
-                  <option>America/New_York (EST)</option>
-                  <option>Europe/London (GMT)</option>
+                <Select label="Timezone" value={preferences.timezone} onChange={(event) => setPreferences({ ...preferences, timezone: event.target.value })}>
+                  <option value="America/New_York">America/New_York (ET)</option>
+                  <option value="America/Chicago">America/Chicago (CT)</option>
+                  <option value="America/Los_Angeles">America/Los_Angeles (PT)</option>
                 </Select>
-                <Select label="Start of month">
-                  <option>1st of month</option>
-                  <option>Last day of month</option>
-                  <option>Custom date</option>
+                <Select label="Start of month" value={preferences.monthStart} onChange={(event) => setPreferences({ ...preferences, monthStart: event.target.value })}>
+                  <option value="1">1st of month</option>
+                  <option value="15">15th of month</option>
+                  <option value="last">Last day of month</option>
                 </Select>
-                
+
                 <div className="pt-4 mt-6 border-t border-border">
-                  <Button>Save preferences</Button>
+                  <Button onClick={() => updateSettings(preferences)}>Save preferences</Button>
                 </div>
               </div>
             </Card>
           )}
-          
-          {/* Mock states for other tabs */}
-          {['notifications', 'security', 'subscription'].includes(activeTab) && (
-            <Card className="p-12 flex flex-col items-center justify-center text-center text-text-muted bg-muted-background/30 border-dashed">
-              <p>Settings for {activeTab} will appear here.</p>
+
+          {activeTab === 'notifications' && (
+            <Card className="p-6">
+              <h3 className="font-medium text-text-main mb-6 pb-4 border-b border-border">Notification Rules</h3>
+              <div className="space-y-4 max-w-lg">
+                {[
+                  ['billReminders', 'Bill reminders', 'Alert when bills are due soon or overdue.'],
+                  ['budgetAlerts', 'Budget alerts', 'Alert when budget usage crosses the limit.'],
+                  ['subscriptionRenewals', 'Subscription renewals', 'Alert before recurring charges renew.'],
+                  ['browser', 'Browser notifications', 'Use your browser notification permission for alerts.']
+                ].map(([key, label, description]) => (
+                  <label key={key} className="flex items-start justify-between gap-4 p-3 border border-border rounded-sm">
+                    <span>
+                      <span className="block text-sm font-medium text-text-main">{label}</span>
+                      <span className="block text-xs text-text-muted mt-1">{description}</span>
+                    </span>
+                    <input
+                      type="checkbox"
+                      checked={settings.notifications[key]}
+                      onChange={(event) => updateNotificationSettings({ [key]: event.target.checked })}
+                      className="mt-1"
+                    />
+                  </label>
+                ))}
+              </div>
+            </Card>
+          )}
+
+          {activeTab === 'security' && (
+            <Card className="p-6">
+              <h3 className="font-medium text-text-main mb-4">Security</h3>
+              <p className="text-sm text-text-muted max-w-xl">
+                Sign-in uses a server-side HTTP-only session cookie, same-origin request checks, password hashing, and login rate limiting. Financial entries are validated before saving and stored locally per signed-in account on this device.
+              </p>
+            </Card>
+          )}
+
+          {activeTab === 'subscription' && (
+            <Card className="p-6">
+              <h3 className="font-medium text-text-main mb-4">Subscription</h3>
+              <p className="text-sm text-text-muted">Current plan: Free. Household collaboration and exports can be layered onto the same ledger data model.</p>
             </Card>
           )}
         </div>

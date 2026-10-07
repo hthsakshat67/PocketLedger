@@ -1,6 +1,7 @@
 import React from 'react';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
+import { Toast } from '../ui/Toast';
 
 export default function AppLayout({ children }) {
   return (
@@ -14,6 +15,7 @@ export default function AppLayout({ children }) {
           </div>
         </main>
       </div>
+      <Toast />
     </div>
   );
 }

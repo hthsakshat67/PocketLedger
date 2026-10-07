@@ -145,7 +145,7 @@ export default function Landing() {
                   <div className="grid gap-4 p-5 md:grid-cols-[0.85fr_1.15fr]">
                     <div className="space-y-4">
                       <div className="rounded-sm border border-border bg-background p-4">
-                        <p className="text-xs font-medium uppercase text-text-muted">September cash flow</p>
+                        <p className="text-xs font-medium uppercase text-text-muted">October cash flow</p>
                         <p className="mt-3 text-3xl font-semibold text-text-main">$1,248</p>
                         <p className="mt-1 text-sm text-status-success">Left after planned bills</p>
                       </div>

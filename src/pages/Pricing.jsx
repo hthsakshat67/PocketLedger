@@ -33,7 +33,7 @@ export default function Pricing() {
           {/* Free Plan */}
           <Card className="p-8 flex flex-col">
             <h3 className="text-xl font-medium text-text-main mb-2">Free</h3>
-            <p className="text-3xl font-semibold text-text-main mb-1">₹0<span className="text-lg text-text-muted font-normal">/month</span></p>
+            <p className="text-3xl font-semibold text-text-main mb-1">$0<span className="text-lg text-text-muted font-normal">/month</span></p>
             <p className="text-sm text-text-muted mb-6">For individuals starting out.</p>
             
             <ul className="space-y-3 mb-8 flex-1">
@@ -54,7 +54,7 @@ export default function Pricing() {
               Recommended
             </div>
             <h3 className="text-xl font-medium text-text-main mb-2">Premium</h3>
-            <p className="text-3xl font-semibold text-text-main mb-1">₹149<span className="text-lg text-text-muted font-normal">/month</span></p>
+            <p className="text-3xl font-semibold text-text-main mb-1">$9<span className="text-lg text-text-muted font-normal">/month</span></p>
             <p className="text-sm text-text-muted mb-6">For active household management.</p>
             
             <ul className="space-y-3 mb-8 flex-1">
@@ -72,7 +72,7 @@ export default function Pricing() {
           {/* Family Plan */}
           <Card className="p-8 flex flex-col">
             <h3 className="text-xl font-medium text-text-main mb-2">Family</h3>
-            <p className="text-3xl font-semibold text-text-main mb-1">₹299<span className="text-lg text-text-muted font-normal">/month</span></p>
+            <p className="text-3xl font-semibold text-text-main mb-1">$19<span className="text-lg text-text-muted font-normal">/month</span></p>
             <p className="text-sm text-text-muted mb-6">For shared household tracking.</p>
             
             <ul className="space-y-3 mb-8 flex-1">

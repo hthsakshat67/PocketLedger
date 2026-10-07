@@ -10,6 +10,7 @@ import Analytics from './pages/Analytics';
 import Reports from './pages/Reports';
 import Family from './pages/Family';
 import Settings from './pages/Settings';
+import Notifications from './pages/Notifications';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -25,6 +26,7 @@ const privateRoutes = [
   ['/analytics', Analytics],
   ['/reports', Reports],
   ['/family', Family],
+  ['/notifications', Notifications],
   ['/settings', Settings]
 ];
 
@@ -37,6 +39,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/pricing" element={<Pricing />} />
+        <Route path="/upgrade" element={<Pricing />} />
 
         {/* Authenticated Routes */}
         {privateRoutes.map(([path, Page]) => (
