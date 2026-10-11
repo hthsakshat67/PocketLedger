@@ -3,9 +3,18 @@ import { useAuth } from './AuthContext';
 
 const LedgerContext = createContext(null);
 
-const today = '2026-10-07';
+const today = '2026-10-11';
 
 const initialState = {
+  profile: {
+    accountBalance: 0,
+    monthlyIncome: 0,
+    householdType: 'Solo',
+    mainGoal: 'Build savings',
+    spendingStyle: 'Balanced',
+    onboardingComplete: false,
+    completedAt: null
+  },
   settings: {
     currency: 'USD',
     timezone: 'America/New_York',
@@ -68,6 +77,13 @@ function readAmount(value, label = 'Amount') {
   return Math.round(amount * 100) / 100;
 }
 
+function readOptionalAmount(value, label = 'Amount') {
+  const amount = Number(value || 0);
+  if (!Number.isFinite(amount) || amount < 0) throw new Error(`${label} must be $0 or more.`);
+  if (amount > 10000000) throw new Error(`${label} is too large.`);
+  return Math.round(amount * 100) / 100;
+}
+
 function readDate(value, label = 'Date') {
   const date = String(value || '');
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || Number.isNaN(new Date(`${date}T00:00:00`).getTime())) {
@@ -102,19 +118,43 @@ export function LedgerProvider({ children }) {
   const { user } = useAuth();
   const [state, setState] = useState(initialState);
   const [toast, setToast] = useState(null);
+  const [activeStorageKey, setActiveStorageKey] = useState(storageKey(user));
 
   useEffect(() => {
+    const key = storageKey(user);
     try {
-      const stored = localStorage.getItem(storageKey(user));
-      setState(stored ? { ...initialState, ...JSON.parse(stored) } : initialState);
+      const stored = localStorage.getItem(key);
+      if (!stored) {
+        setState(initialState);
+        setActiveStorageKey(key);
+        return;
+      }
+      const parsed = JSON.parse(stored);
+      setState({
+        ...initialState,
+        ...parsed,
+        profile: { ...initialState.profile, ...(parsed.profile || {}) },
+        settings: {
+          ...initialState.settings,
+          ...(parsed.settings || {}),
+          notifications: {
+            ...initialState.settings.notifications,
+            ...(parsed.settings?.notifications || {})
+          }
+        }
+      });
+      setActiveStorageKey(key);
     } catch {
       setState(initialState);
+      setActiveStorageKey(key);
     }
   }, [user?.id]);
 
   useEffect(() => {
-    localStorage.setItem(storageKey(user), JSON.stringify(state));
-  }, [state, user?.id]);
+    const key = storageKey(user);
+    if (activeStorageKey !== key) return;
+    localStorage.setItem(key, JSON.stringify(state));
+  }, [state, user?.id, activeStorageKey]);
 
   const formatMoney = useCallback((value) => new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -213,6 +253,26 @@ export function LedgerProvider({ children }) {
     pushNotification('Invitation prepared', `${name} has been added as an invited household member.`, 'success');
   }, [pushNotification]);
 
+  const updateProfile = useCallback((payload, options = {}) => {
+    const nextProfile = {
+      accountBalance: readOptionalAmount(payload.accountBalance, 'Account balance'),
+      monthlyIncome: readAmount(payload.monthlyIncome, 'Monthly income after taxes'),
+      householdType: cleanText(payload.householdType) || 'Solo',
+      mainGoal: cleanText(payload.mainGoal) || 'Build savings',
+      spendingStyle: cleanText(payload.spendingStyle) || 'Balanced'
+    };
+    setState((current) => ({
+      ...current,
+      profile: {
+        ...current.profile,
+        ...nextProfile,
+        onboardingComplete: options.complete ? true : current.profile.onboardingComplete,
+        completedAt: options.complete ? new Date().toISOString() : current.profile.completedAt
+      }
+    }));
+    pushNotification(options.complete ? 'PocketLedger is personalized' : 'Money profile saved', 'Your balance, income, and preferences are now reflected across the app.', 'success');
+  }, [pushNotification]);
+
   const updateSettings = useCallback((updates) => {
     setState((current) => ({ ...current, settings: { ...current.settings, ...updates } }));
     pushNotification('Settings saved', 'Your preferences were updated.', 'success');
@@ -247,6 +307,7 @@ export function LedgerProvider({ children }) {
     const monthlyExpenses = state.expenses.filter((expense) => monthKey(expense.date) === currentMonth);
     const monthlySpending = monthlyExpenses.reduce((sum, item) => sum + item.amount, 0);
     const monthlySubscriptions = state.subscriptions.reduce((sum, item) => sum + (item.frequency === 'year' ? item.cost / 12 : item.cost), 0);
+    const unpaidBills = activeBills.filter((bill) => bill.status !== 'paid').reduce((sum, item) => sum + item.amount, 0);
     const upcomingBills = activeBills.filter((bill) => bill.status !== 'paid').sort((a, b) => a.dueDate.localeCompare(b.dueDate));
     const categoryTotals = monthlyExpenses.reduce((totals, item) => {
       totals[item.category] = (totals[item.category] || 0) + item.amount;
@@ -260,7 +321,10 @@ export function LedgerProvider({ children }) {
       bills: activeBills,
       monthlyExpenses,
       monthlySpending,
-      monthlyIncome: 5200,
+      monthlyIncome: state.profile.monthlyIncome,
+      accountBalance: state.profile.accountBalance,
+      projectedBalance: state.profile.accountBalance + state.profile.monthlyIncome - monthlySpending - monthlySubscriptions - unpaidBills,
+      unpaidBills,
       monthlySubscriptions,
       annualSubscriptions: monthlySubscriptions * 12,
       upcomingBills,
@@ -273,6 +337,7 @@ export function LedgerProvider({ children }) {
   const value = useMemo(() => ({
     ...state,
     ...derived,
+    ledgerReady: activeStorageKey === storageKey(user),
     toast,
     setToast,
     formatMoney,
@@ -282,10 +347,11 @@ export function LedgerProvider({ children }) {
     addSubscription,
     addBudget,
     inviteMember,
+    updateProfile,
     updateSettings,
     updateNotificationSettings,
     markNotificationRead
-  }), [state, derived, toast, formatMoney, addExpense, addBill, markBillPaid, addSubscription, addBudget, inviteMember, updateSettings, updateNotificationSettings, markNotificationRead]);
+  }), [state, derived, activeStorageKey, user, toast, formatMoney, addExpense, addBill, markBillPaid, addSubscription, addBudget, inviteMember, updateProfile, updateSettings, updateNotificationSettings, markNotificationRead]);
 
   return <LedgerContext.Provider value={value}>{children}</LedgerContext.Provider>;
 }

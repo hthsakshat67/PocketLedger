@@ -12,7 +12,7 @@ const blankExpense = {
   amount: '',
   category: 'Food',
   method: 'Card',
-  date: '2026-10-07',
+  date: '2026-10-11',
   notes: ''
 };
 

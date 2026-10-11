@@ -10,8 +10,12 @@ const colors = ['#245C4A', '#6B8F71', '#B9803D', '#576C9D', '#9A6B7D', '#7C7C6F'
 export default function Dashboard() {
   const {
     expenses,
+    profile,
+    accountBalance,
     monthlySpending,
     monthlyIncome,
+    projectedBalance,
+    unpaidBills,
     upcomingBills,
     categoryTotals,
     monthlySubscriptions,
@@ -35,22 +39,21 @@ export default function Dashboard() {
     .sort((a, b) => b.value - a.value);
 
   const recentTransactions = expenses.slice(0, 5);
-  const remaining = monthlyIncome - monthlySpending - monthlySubscriptions;
+  const remaining = monthlyIncome - monthlySpending - monthlySubscriptions - unpaidBills;
 
   return (
     <div className="space-y-6">
       <header className="mb-8">
         <h1 className="text-2xl font-semibold text-text-main mb-1">Good morning</h1>
-        <p className="text-text-muted text-sm">Here's how your household finances are looking this month.</p>
+        <p className="text-text-muted text-sm">Your goal is {profile.mainGoal.toLowerCase()} with a {profile.spendingStyle.toLowerCase()} spending style.</p>
       </header>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="p-5">
-          <p className="text-sm text-text-muted mb-2">Monthly spending</p>
-          <p className="text-3xl font-semibold text-text-main mb-2">{formatMoney(monthlySpending)}</p>
-          <div className="flex items-center text-xs text-status-warning">
-            <ArrowUpRight className="w-3 h-3 mr-1" />
-            <span>Updates as expenses are added</span>
+          <p className="text-sm text-text-muted mb-2">Account balance</p>
+          <p className="text-3xl font-semibold text-text-main mb-2">{formatMoney(accountBalance)}</p>
+          <div className="flex items-center text-xs text-text-muted">
+            <span>Editable in Settings</span>
           </div>
         </Card>
         <Card className="p-5">
@@ -61,18 +64,19 @@ export default function Dashboard() {
           </div>
         </Card>
         <Card className="p-5">
-          <p className="text-sm text-text-muted mb-2">Remaining</p>
+          <p className="text-sm text-text-muted mb-2">Monthly runway</p>
           <p className="text-3xl font-semibold text-text-main mb-2">{formatMoney(remaining)}</p>
           <div className={`flex items-center text-xs ${remaining >= 0 ? 'text-status-success' : 'text-status-danger'}`}>
             <ArrowDownRight className="w-3 h-3 mr-1" />
-            <span>{remaining >= 0 ? 'Available after tracked costs' : 'Over planned cash flow'}</span>
+            <span>{remaining >= 0 ? 'After spending, subs, bills' : 'Over planned cash flow'}</span>
           </div>
         </Card>
         <Card className="p-5">
-          <p className="text-sm text-text-muted mb-2">Upcoming bills</p>
-          <p className="text-3xl font-semibold text-text-main mb-2">{upcomingBills.length}</p>
-          <div className="flex items-center text-xs text-text-muted">
-            <span>{upcomingBills[0] ? `Next due ${formatDate(upcomingBills[0].dueDate)}` : 'Nothing due'}</span>
+          <p className="text-sm text-text-muted mb-2">Projected balance</p>
+          <p className="text-3xl font-semibold text-text-main mb-2">{formatMoney(projectedBalance)}</p>
+          <div className={`flex items-center text-xs ${projectedBalance >= 0 ? 'text-status-success' : 'text-status-danger'}`}>
+            <ArrowUpRight className="w-3 h-3 mr-1" />
+            <span>{projectedBalance >= 0 ? 'End-of-month projection' : 'Needs attention'}</span>
           </div>
         </Card>
       </div>

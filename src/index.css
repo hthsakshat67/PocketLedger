@@ -27,3 +27,43 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #A3A3A3; 
 }
+
+@keyframes pocket-spin {
+  from {
+    transform: translate(-50%, -50%) rotateX(68deg) rotateZ(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotateX(68deg) rotateZ(360deg);
+  }
+}
+
+@keyframes pocket-float {
+  0%, 100% {
+    transform: rotateX(8deg) rotateY(-12deg) translateY(0);
+  }
+  50% {
+    transform: rotateX(12deg) rotateY(10deg) translateY(-12px);
+  }
+}
+
+.pocket-orbit {
+  animation: pocket-spin 16s linear infinite;
+  transform-style: preserve-3d;
+}
+
+.pocket-orbit-slow {
+  animation-duration: 24s;
+  animation-direction: reverse;
+}
+
+.pocket-tilt {
+  animation: pocket-float 7s ease-in-out infinite;
+  transform-style: preserve-3d;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pocket-orbit,
+  .pocket-tilt {
+    animation: none;
+  }
+}

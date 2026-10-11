@@ -8,13 +8,19 @@ import { useLedger } from '../context/LedgerContext';
 
 export default function Settings() {
   const { user } = useAuth();
-  const { settings, updateSettings, updateNotificationSettings } = useLedger();
+  const { profile, settings, updateProfile, updateSettings, updateNotificationSettings, formatMoney } = useLedger();
   const [activeTab, setActiveTab] = useState('profile');
   const [preferences, setPreferences] = useState(settings);
+  const [moneyProfile, setMoneyProfile] = useState(profile);
+  const [profileError, setProfileError] = useState('');
 
   useEffect(() => {
     setPreferences(settings);
   }, [settings]);
+
+  useEffect(() => {
+    setMoneyProfile(profile);
+  }, [profile]);
 
   const tabs = [
     { id: 'profile', label: 'Profile' },
@@ -57,19 +63,85 @@ export default function Settings() {
 
         <div className="flex-1 min-w-0">
           {activeTab === 'profile' && (
-            <Card className="p-6">
-              <h3 className="font-medium text-text-main mb-6 pb-4 border-b border-border">Profile Information</h3>
-              <div className="space-y-4 max-w-md">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-16 h-16 rounded-full bg-muted-background flex items-center justify-center text-text-main font-medium text-xl">
-                    {initials}
+            <div className="space-y-4">
+              <Card className="p-6">
+                <h3 className="font-medium text-text-main mb-6 pb-4 border-b border-border">Profile Information</h3>
+                <div className="space-y-4 max-w-md">
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-16 h-16 rounded-full bg-muted-background flex items-center justify-center text-text-main font-medium text-xl">
+                      {initials}
+                    </div>
+                  </div>
+                  <Input label="Full name" value={user?.name || ''} readOnly />
+                  <Input label="Email address" value={user?.email || ''} type="email" readOnly />
+                  <p className="text-xs text-text-muted">Profile identity is tied to your verified login account.</p>
+                </div>
+              </Card>
+
+              <Card className="p-6">
+                <div className="mb-6 flex flex-col gap-3 border-b border-border pb-4 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <h3 className="font-medium text-text-main">Money Profile</h3>
+                    <p className="text-sm text-text-muted mt-1">Edit the onboarding answers that power your dashboard.</p>
+                  </div>
+                  <div className="rounded-sm bg-primary/10 px-3 py-2 text-sm font-medium text-primary">
+                    {formatMoney(Number(moneyProfile.accountBalance || 0) + Number(moneyProfile.monthlyIncome || 0))} starting power
                   </div>
                 </div>
-                <Input label="Full name" value={user?.name || ''} readOnly />
-                <Input label="Email address" value={user?.email || ''} type="email" readOnly />
-                <p className="text-xs text-text-muted">Profile identity is tied to your verified login account.</p>
-              </div>
-            </Card>
+                {profileError && <p className="mb-4 rounded-sm border border-status-danger/30 bg-status-danger/5 px-3 py-2 text-sm text-status-danger">{profileError}</p>}
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <Input
+                    label="Current account balance ($)"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={moneyProfile.accountBalance}
+                    onChange={(event) => setMoneyProfile({ ...moneyProfile, accountBalance: event.target.value })}
+                  />
+                  <Input
+                    label="Monthly income after taxes ($)"
+                    type="number"
+                    min="0.01"
+                    step="0.01"
+                    value={moneyProfile.monthlyIncome}
+                    onChange={(event) => setMoneyProfile({ ...moneyProfile, monthlyIncome: event.target.value })}
+                  />
+                  <Select label="Household setup" value={moneyProfile.householdType} onChange={(event) => setMoneyProfile({ ...moneyProfile, householdType: event.target.value })}>
+                    <option>Solo</option>
+                    <option>Couple</option>
+                    <option>Family</option>
+                    <option>Roommates</option>
+                  </Select>
+                  <Select label="Primary goal" value={moneyProfile.mainGoal} onChange={(event) => setMoneyProfile({ ...moneyProfile, mainGoal: event.target.value })}>
+                    <option>Build savings</option>
+                    <option>Pay bills on time</option>
+                    <option>Lower spending</option>
+                    <option>Track shared household costs</option>
+                    <option>Prepare for a big purchase</option>
+                  </Select>
+                  <Select label="Spending style" value={moneyProfile.spendingStyle} onChange={(event) => setMoneyProfile({ ...moneyProfile, spendingStyle: event.target.value })}>
+                    <option>Careful</option>
+                    <option>Balanced</option>
+                    <option>Flexible</option>
+                    <option>Aggressive saving</option>
+                  </Select>
+                </div>
+                <div className="pt-4 mt-6 border-t border-border">
+                  <Button
+                    onClick={() => {
+                      try {
+                        updateProfile(moneyProfile);
+                        setProfileError('');
+                      } catch (error) {
+                        setProfileError(error.message);
+                      }
+                    }}
+                  >
+                    Save money profile
+                  </Button>
+                </div>
+              </Card>
+            </div>
           )}
 
           {activeTab === 'preferences' && (

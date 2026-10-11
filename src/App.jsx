@@ -15,10 +15,12 @@ import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Pricing from './pages/Pricing';
+import Onboarding from './pages/Onboarding';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
 const privateRoutes = [
   ['/dashboard', Dashboard],
+  ['/onboarding', Onboarding],
   ['/expenses', Expenses],
   ['/bills', Bills],
   ['/subscriptions', Subscriptions],

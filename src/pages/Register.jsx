@@ -54,7 +54,7 @@ export default function Register() {
         }
       });
       setUser(data.user);
-      navigate('/dashboard', { replace: true });
+      navigate('/onboarding', { replace: true });
     } catch (err) {
       setError(err.message);
     } finally {
