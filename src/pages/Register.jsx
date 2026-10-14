@@ -4,6 +4,7 @@ import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { apiRequest } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
+import BrandMark from '../components/BrandMark';
 
 export default function Register() {
   const navigate = useNavigate();
@@ -67,9 +68,7 @@ export default function Register() {
       <div className="w-full max-w-md bg-surface border border-border rounded-lg shadow-subtle p-8 sm:p-10">
         <div className="flex justify-center mb-8">
           <div className="flex items-center gap-2 font-semibold text-xl text-text-main cursor-pointer" onClick={() => navigate('/')}>
-            <div className="w-8 h-8 bg-primary rounded-sm flex items-center justify-center">
-              <span className="text-white text-sm font-bold">P</span>
-            </div>
+            <BrandMark className="h-8 w-8" />
             PocketLedger
           </div>
         </div>

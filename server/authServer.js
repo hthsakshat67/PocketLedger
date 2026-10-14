@@ -28,10 +28,12 @@ const dbDefault = {
   users: [],
   sessions: [],
   otps: [],
-  loginAttempts: []
+  loginAttempts: [],
+  notifications: []
 };
 
 let writeQueue = Promise.resolve();
+const notificationClients = new Map();
 
 class HttpError extends Error {
   constructor(status, message) {
@@ -215,6 +217,63 @@ function parseCookies(req) {
         return [part.slice(0, index), decodeURIComponent(part.slice(index + 1))];
       })
   );
+}
+
+function writeSse(res, event, payload) {
+  res.write(`event: ${event}\ndata: ${JSON.stringify(payload)}\n\n`);
+}
+
+function broadcastNotification(notification) {
+  (notificationClients.get(notification.userId) || []).forEach((res) => writeSse(res, 'notification', notification));
+}
+
+async function handleNotificationsStream(req, res, db) {
+  const current = await getCurrentUser(req, db);
+  if (!current) return jsonResponse(res, 401, { error: 'Authentication required.' });
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream; charset=utf-8',
+    'Cache-Control': 'no-cache, no-transform',
+    Connection: 'keep-alive',
+    'Access-Control-Allow-Origin': corsOrigin(req),
+    'Access-Control-Allow-Credentials': 'true'
+  });
+  res.write(': connected\n\n');
+  const clients = notificationClients.get(current.user.id) || [];
+  clients.push(res);
+  notificationClients.set(current.user.id, clients);
+  const heartbeat = setInterval(() => res.write(': heartbeat\n\n'), 25000);
+  req.on('close', () => {
+    clearInterval(heartbeat);
+    const active = (notificationClients.get(current.user.id) || []).filter((client) => client !== res);
+    if (active.length) notificationClients.set(current.user.id, active);
+    else notificationClients.delete(current.user.id);
+  });
+}
+
+async function handleCreateNotification(req, res, db) {
+  const current = await getCurrentUser(req, db);
+  if (!current) return jsonResponse(res, 401, { error: 'Authentication required.' });
+  const body = await readBody(req);
+  const notification = {
+    id: typeof body.id === 'string' && body.id.length < 80 ? body.id : crypto.randomUUID(),
+    userId: current.user.id,
+    title: String(body.title || '').trim().slice(0, 120),
+    body: String(body.body || '').trim().slice(0, 500),
+    type: ['success', 'warning', 'info'].includes(body.type) ? body.type : 'info',
+    read: false,
+    createdAt: new Date().toISOString()
+  };
+  if (!notification.title || !notification.body) return jsonResponse(res, 400, { error: 'Notification title and body are required.' });
+  db.notifications = [notification, ...db.notifications].slice(0, 1000);
+  await writeDb(db);
+  broadcastNotification(notification);
+  return jsonResponse(res, 201, { notification });
+}
+
+async function handleListNotifications(req, res, db) {
+  const current = await getCurrentUser(req, db);
+  if (!current) return jsonResponse(res, 401, { error: 'Authentication required.' });
+  return jsonResponse(res, 200, { notifications: db.notifications.filter((item) => item.userId === current.user.id).slice(0, 100) });
 }
 
 function clientIp(req) {
@@ -467,11 +526,15 @@ async function handleRequest(req, res) {
       return res.end();
     }
 
-    if (!req.url.startsWith('/api/auth')) return jsonResponse(res, 404, { error: 'Not found.' });
+    if (!req.url.startsWith('/api/')) return jsonResponse(res, 404, { error: 'Not found.' });
     if (!assertSameOrigin(req)) return jsonResponse(res, 403, { error: 'Invalid request origin.' });
 
     const db = await readDb();
     cleanDb(db);
+
+    if (req.method === 'GET' && req.url === '/api/notifications/stream') return await handleNotificationsStream(req, res, db);
+    if (req.method === 'GET' && req.url === '/api/notifications') return await handleListNotifications(req, res, db);
+    if (req.method === 'POST' && req.url === '/api/notifications') return await handleCreateNotification(req, res, db);
 
     if (req.method === 'POST' && req.url === '/api/auth/register') return await handleRegister(req, res, db);
     if (req.method === 'POST' && req.url === '/api/auth/verify') return await handleVerify(req, res, db);

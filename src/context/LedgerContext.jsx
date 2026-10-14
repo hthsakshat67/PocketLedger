@@ -1,5 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useAuth } from './AuthContext';
+import { apiRequest } from '../lib/api';
 
 const LedgerContext = createContext(null);
 
@@ -120,6 +121,45 @@ export function LedgerProvider({ children }) {
   const [toast, setToast] = useState(null);
   const [activeStorageKey, setActiveStorageKey] = useState(storageKey(user));
 
+  const addIncomingNotification = useCallback((notification) => {
+    setState((current) => {
+      if (current.notifications.some((item) => item.id === notification.id)) return current;
+      return { ...current, notifications: [notification, ...current.notifications].slice(0, 50) };
+    });
+    setToast(notification);
+    if (state.settings.notifications.browser && 'Notification' in window && Notification.permission === 'granted') {
+      new Notification(notification.title, { body: notification.body });
+    }
+  }, [state.settings.notifications.browser]);
+
+  useEffect(() => {
+    if (!user?.id) return undefined;
+    let alive = true;
+    const channel = 'BroadcastChannel' in window ? new BroadcastChannel(`pocketledger:${user.id}:notifications`) : null;
+    const onBroadcast = (event) => alive && addIncomingNotification(event.data);
+    channel?.addEventListener('message', onBroadcast);
+    apiRequest('/api/notifications')
+      .then(({ notifications = [] }) => {
+        if (alive && notifications.length) setState((current) => ({ ...current, notifications }));
+      })
+      .catch(() => {});
+    const stream = new EventSource('/api/notifications/stream');
+    const onStream = (event) => {
+      try {
+        addIncomingNotification(JSON.parse(event.data));
+      } catch {
+        // Ignore malformed stream events.
+      }
+    };
+    stream.addEventListener('notification', onStream);
+    return () => {
+      alive = false;
+      channel?.removeEventListener('message', onBroadcast);
+      channel?.close();
+      stream.close();
+    };
+  }, [user?.id, addIncomingNotification]);
+
   useEffect(() => {
     const key = storageKey(user);
     try {
@@ -165,10 +205,16 @@ export function LedgerProvider({ children }) {
     const notification = { id: uid('note'), title, body, type, read: false, createdAt: new Date().toISOString() };
     setState((current) => ({ ...current, notifications: [notification, ...current.notifications].slice(0, 50) }));
     setToast(notification);
+    if ('BroadcastChannel' in window && user?.id) {
+      const channel = new BroadcastChannel(`pocketledger:${user.id}:notifications`);
+      channel.postMessage(notification);
+      channel.close();
+    }
+    apiRequest('/api/notifications', { method: 'POST', body: { id: notification.id, title, body, type } }).catch(() => {});
     if (state.settings.notifications.browser && 'Notification' in window && Notification.permission === 'granted') {
       new Notification(title, { body });
     }
-  }, [state.settings.notifications.browser]);
+  }, [state.settings.notifications.browser, user?.id]);
 
   const addExpense = useCallback((payload) => {
     const expense = {

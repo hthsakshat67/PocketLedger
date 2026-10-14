@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { Home, CreditCard, FileText, Repeat, PieChart, BarChart2, Users, Bell, Settings, ArrowUpCircle, LogOut } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useAuth } from '../../context/AuthContext';
+import BrandMark from '../BrandMark';
 
 const navItems = [
   { label: 'Overview', items: [{ name: 'Dashboard', path: '/dashboard', icon: Home }] },
@@ -41,9 +42,7 @@ export default function Sidebar() {
     <aside className="w-64 bg-background border-r border-border h-screen sticky top-0 flex-col hidden sm:flex">
       <div className="p-6 pb-2">
         <h1 className="font-semibold text-lg flex items-center gap-2 text-text-main">
-          <div className="w-6 h-6 bg-primary rounded-sm flex items-center justify-center">
-            <span className="text-white text-xs font-bold">P</span>
-          </div>
+          <BrandMark className="h-6 w-6" />
           PocketLedger
         </h1>
       </div>
