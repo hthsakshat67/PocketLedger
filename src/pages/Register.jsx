@@ -68,7 +68,7 @@ export default function Register() {
       <div className="w-full max-w-md bg-surface border border-border rounded-lg shadow-subtle p-8 sm:p-10">
         <div className="flex justify-center mb-8">
           <div className="flex items-center gap-2 font-semibold text-xl text-text-main cursor-pointer" onClick={() => navigate('/')}>
-            <BrandLogo className="h-20 w-20 rounded-sm" />
+            <BrandLogo className="h-32 w-32" />
           </div>
         </div>
 

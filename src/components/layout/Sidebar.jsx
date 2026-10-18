@@ -41,9 +41,9 @@ export default function Sidebar() {
   return (
     <aside className="w-64 bg-background border-r border-border h-screen sticky top-0 flex-col hidden sm:flex">
       <div className="p-6 pb-2">
-        <h1 className="font-semibold text-lg flex items-center gap-2 text-text-main">
-          <BrandMark className="h-6 w-6" />
-          PocketLedger
+        <h1 className="flex items-center gap-2 text-text-main">
+          <BrandMark className="h-5 w-7" />
+          <span className="font-semibold text-base">PocketLedger</span>
         </h1>
       </div>
       

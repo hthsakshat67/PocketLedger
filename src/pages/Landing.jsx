@@ -13,6 +13,7 @@ import {
   Users
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
+import BrandMark from '../components/BrandMark';
 import BrandLogo from '../components/BrandLogo';
 
 const features = [
@@ -65,10 +66,10 @@ export default function Landing() {
           <button
             type="button"
             onClick={() => navigate('/')}
-            className="flex items-center gap-2 font-semibold text-lg text-text-main"
+            className="flex items-center text-text-main"
           >
-            <BrandLogo className="h-9 w-9" />
-            <span>PocketLedger</span>
+            <BrandMark className="h-6 w-8" />
+            <span className="font-semibold text-base">PocketLedger</span>
           </button>
           <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-text-muted">
             <a href="#features" className="hover:text-text-main transition-colors">Features</a>
@@ -99,7 +100,6 @@ export default function Landing() {
                 <LockKeyhole className="h-4 w-4 text-primary" />
                 Email-verified household finance
               </div>
-              <BrandLogo className="mb-5 h-28 w-28 rounded-lg" />
               <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-text-main md:text-6xl">
                 PocketLedger
               </h1>
@@ -132,7 +132,12 @@ export default function Landing() {
             </motion.div>
 
             <div ref={previewRef} className="relative min-h-[520px] lg:min-h-[620px]">
-              <motion.div style={{ y: previewY, scale: previewScale }} className="sticky top-28">
+              <motion.div
+                style={{ y: previewY, scale: previewScale }}
+                animate={{ rotateX: [0, 1.2, 0], rotateY: [0, -1.5, 0] }}
+                transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
+                className="sticky top-28 [transform-style:preserve-3d]"
+              >
                 <div className="overflow-hidden rounded-lg border border-border bg-surface shadow-subtle">
                   <div className="flex items-center justify-between border-b border-border bg-muted-background/60 px-4 py-3">
                     <div className="flex items-center gap-2">
@@ -153,14 +158,20 @@ export default function Landing() {
                         ['Mortgage', '$1,850', 'Paid'],
                         ['Utilities', '$214', 'Due Friday'],
                         ['Streaming', '$38', 'Renews Oct 9']
-                      ].map(([name, amount, status]) => (
-                        <div key={name} className="flex items-center justify-between rounded-sm border border-border bg-surface p-3">
+                      ].map(([name, amount, status], index) => (
+                        <motion.div
+                          key={name}
+                          initial={{ opacity: 0, x: -12 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.25 + index * 0.12, duration: 0.45 }}
+                          className="flex items-center justify-between rounded-sm border border-border bg-surface p-3"
+                        >
                           <div>
                             <p className="text-sm font-medium text-text-main">{name}</p>
                             <p className="text-xs text-text-muted">{status}</p>
                           </div>
                           <p className="text-sm font-semibold text-text-main">{amount}</p>
-                        </div>
+                        </motion.div>
                       ))}
                     </div>
                     <div className="rounded-sm border border-border bg-background p-4">
@@ -183,7 +194,12 @@ export default function Landing() {
                               <span className="text-text-muted">{amount}</span>
                             </div>
                             <div className="h-3 overflow-hidden rounded-sm bg-muted-background">
-                              <motion.div style={{ width }} className="h-full rounded-sm bg-primary" />
+                              <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width }}
+                                transition={{ duration: 1.1, delay: 0.35, ease: 'easeOut' }}
+                                className="h-full rounded-sm bg-primary"
+                              />
                             </div>
                           </div>
                         ))}
@@ -223,6 +239,7 @@ export default function Landing() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, amount: 0.35 }}
                 transition={{ delay: index * 0.07, duration: 0.4 }}
+                whileHover={{ y: -6, transition: { duration: 0.2 } }}
                 className="rounded-lg border border-border bg-surface p-5 shadow-subtle"
               >
                 <feature.icon className="h-6 w-6 text-primary" />
@@ -280,6 +297,7 @@ export default function Landing() {
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true, amount: 0.5 }}
                   transition={{ delay: index * 0.08, duration: 0.35 }}
+                  whileHover={{ x: 8, transition: { duration: 0.2 } }}
                   className="flex items-center gap-4 border-b border-border pb-4"
                 >
                   <span className="flex h-9 w-9 items-center justify-center rounded-sm bg-primary text-sm font-semibold text-white">
@@ -295,7 +313,10 @@ export default function Landing() {
 
       <footer className="border-t border-border bg-surface">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 px-6 py-8 text-sm text-text-muted sm:flex-row sm:items-center sm:justify-between">
-          <p>&copy; 2026 PocketLedger. All rights reserved.</p>
+          <div className="flex items-center gap-4">
+            <BrandLogo className="h-14 w-28" />
+            <p>&copy; 2026 PocketLedger. All rights reserved.</p>
+          </div>
           <button onClick={() => navigate('/register')} className="w-fit font-medium text-text-main hover:text-primary transition-colors">
             Create an account
           </button>

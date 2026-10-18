@@ -40,7 +40,7 @@ export default function Login() {
     <div className="min-h-screen bg-background flex flex-col md:flex-row">
       <div className="hidden md:flex flex-col justify-center p-12 lg:p-24 w-1/2 bg-surface border-r border-border">
         <div className="flex items-center gap-2 font-semibold text-xl text-text-main mb-8">
-          <BrandLogo className="h-20 w-20 rounded-sm" />
+          <BrandLogo className="h-36 w-36" />
         </div>
         <h1 className="text-3xl lg:text-4xl font-semibold text-text-main mb-4 tracking-tight">
           Welcome back
@@ -53,7 +53,7 @@ export default function Login() {
       <div className="flex-1 flex flex-col justify-center p-8 sm:p-12 lg:p-24">
         <div className="w-full max-w-md mx-auto">
           <div className="md:hidden flex items-center gap-2 font-semibold text-xl text-text-main mb-12 justify-center">
-            <BrandLogo className="h-20 w-20 rounded-sm" />
+            <BrandLogo className="h-28 w-28" />
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
