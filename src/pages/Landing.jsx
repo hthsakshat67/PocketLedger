@@ -13,6 +13,7 @@ import {
   Users
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
+import BrandLogo from '../components/BrandLogo';
 
 const features = [
   {
@@ -66,10 +67,8 @@ export default function Landing() {
             onClick={() => navigate('/')}
             className="flex items-center gap-2 font-semibold text-lg text-text-main"
           >
-            <div className="w-7 h-7 bg-primary rounded-sm flex items-center justify-center">
-              <span className="text-white text-xs font-bold">P</span>
-            </div>
-            PocketLedger
+            <BrandLogo className="h-9 w-9" />
+            <span>PocketLedger</span>
           </button>
           <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-text-muted">
             <a href="#features" className="hover:text-text-main transition-colors">Features</a>
@@ -100,6 +99,7 @@ export default function Landing() {
                 <LockKeyhole className="h-4 w-4 text-primary" />
                 Email-verified household finance
               </div>
+              <BrandLogo className="mb-5 h-28 w-28 rounded-lg" />
               <h1 className="max-w-3xl text-4xl font-semibold tracking-tight text-text-main md:text-6xl">
                 PocketLedger
               </h1>

@@ -4,7 +4,7 @@ import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { apiRequest } from '../lib/api';
 import { useAuth } from '../context/AuthContext';
-import BrandMark from '../components/BrandMark';
+import BrandLogo from '../components/BrandLogo';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -40,8 +40,7 @@ export default function Login() {
     <div className="min-h-screen bg-background flex flex-col md:flex-row">
       <div className="hidden md:flex flex-col justify-center p-12 lg:p-24 w-1/2 bg-surface border-r border-border">
         <div className="flex items-center gap-2 font-semibold text-xl text-text-main mb-8">
-          <BrandMark className="h-8 w-8" />
-          PocketLedger
+          <BrandLogo className="h-20 w-20 rounded-sm" />
         </div>
         <h1 className="text-3xl lg:text-4xl font-semibold text-text-main mb-4 tracking-tight">
           Welcome back
@@ -54,8 +53,7 @@ export default function Login() {
       <div className="flex-1 flex flex-col justify-center p-8 sm:p-12 lg:p-24">
         <div className="w-full max-w-md mx-auto">
           <div className="md:hidden flex items-center gap-2 font-semibold text-xl text-text-main mb-12 justify-center">
-            <BrandMark className="h-8 w-8" />
-            PocketLedger
+            <BrandLogo className="h-20 w-20 rounded-sm" />
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
